@@ -432,7 +432,7 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
 <div class="modal-overlay" id="apiKeyModal">
   <div class="modal">
     <h2>Anthropic API Key</h2>
-    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Your key is stored locally and only sent to <strong>api.anthropic.com</strong>. It never touches Campo Labs' servers.</p>
+    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">💡 <strong>Optional</strong> — the AI Analyst works out of the box on the demo. Add your own key for unlimited usage when you clone the repo. Your key is stored locally and only sent to <strong>api.anthropic.com</strong>.</p>
     <div class="form-group">
       <label>API Key</label>
       <input type="password" id="inputApiKey" placeholder="sk-ant-api03-…">
@@ -999,12 +999,13 @@ RULES:
 
 function sendChip(el) { document.getElementById('chatInput').value = el.textContent; sendChat(); }
 
+// AI Chat: uses worker proxy (BYOK fallback for cloned repos)
+const CHAT_WORKER_URL = 'https://campo-portfolio-ai.mdacampora.workers.dev/api/chat';
+
 async function sendChat() {
   const input = document.getElementById('chatInput');
   const raw = input.value.trim();
   if (!raw) return;
-  const key = localStorage.getItem(API_KEY_STORAGE);
-  if (!key) { toast('Set your Anthropic API key first', 'error'); openApiKeyModal(); return; }
   if (chatCount >= MAX_CHAT) { toast('Session message limit reached. Refresh to reset.', 'error'); return; }
 
   const userMsg = sanitizeInput(raw);
@@ -1024,30 +1025,57 @@ async function sendChat() {
   msgContainer.scrollTop = msgContainer.scrollHeight;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
-        system: buildSystemPrompt(),
-        messages: chatHistory.slice(-10), // Keep last 10 for context window
-      }),
-    });
-    typingEl.remove();
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `API error ${resp.status}`);
+    // Try worker proxy first (demo mode), fall back to direct BYOK
+    const byokKey = localStorage.getItem(API_KEY_STORAGE);
+    let resp;
+
+    if (byokKey) {
+      // BYOK mode: direct to Anthropic
+      resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': byokKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          system: buildSystemPrompt(),
+          messages: chatHistory.slice(-10),
+        }),
+      });
+      typingEl.remove();
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err?.error?.message || `API error ${resp.status}`);
+      }
+      const data = await resp.json();
+      const reply = data?.content?.[0]?.text || 'No response.';
+      chatHistory.push({ role: 'assistant', content: reply });
+      appendChatMessage('assistant', reply);
+    } else {
+      // Worker proxy mode (demo)
+      resp = await fetch(CHAT_WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: chatHistory.slice(-10),
+          portfolioContext: buildPortfolioContext(),
+        }),
+      });
+      typingEl.remove();
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        if (resp.status === 429) throw new Error('Rate limit reached. Try again in a few minutes.');
+        throw new Error(err?.error || `Service error ${resp.status}`);
+      }
+      const data = await resp.json();
+      const reply = data?.reply || 'No response.';
+      chatHistory.push({ role: 'assistant', content: reply });
+      appendChatMessage('assistant', reply);
     }
-    const data = await resp.json();
-    const reply = data?.content?.[0]?.text || 'No response.';
-    chatHistory.push({ role: 'assistant', content: reply });
-    appendChatMessage('assistant', reply);
   } catch(e) {
     typingEl.remove();
     appendChatMessage('system', '⚠️ ' + e.message);

@@ -1,0 +1,8 @@
+name = "campo-portfolio-ai"
+main = "src/index.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+MODEL = "claude-sonnet-4-20250514"
+MAX_TOKENS = "300"
+MAX_MESSAGES_PER_SESSION = "15"
