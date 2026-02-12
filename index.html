@@ -13,8 +13,8 @@
   --red: #f85149; --yellow: #d29922; --radius: 8px;
   --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 }
-html { font-size: 14px; }
-body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; }
+html { font-size: 14px; overflow-x: hidden; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; overflow-x: hidden; width: 100vw; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 button { font-family: var(--font); cursor: pointer; border: none; background: none; color: var(--text); }
@@ -52,7 +52,7 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 
 /* Layout */
 .app { display: flex; flex-direction: column; min-height: calc(100vh - 57px); }
-main { flex: 1; padding: 20px 24px; width: 100%; overflow-x: hidden; }
+main { flex: 1; padding: 20px 24px; width: 100%; max-width: 100vw; overflow-x: hidden; }
 
 /* Summary Cards */
 .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
@@ -73,7 +73,7 @@ main { flex: 1; padding: 20px 24px; width: 100%; overflow-x: hidden; }
 .refresh-indicator { font-size: 0.75rem; color: var(--text-muted); }
 
 /* Table */
-.table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; margin-bottom: 16px; max-width: 100%; min-width: 0; }
+.table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; overflow-y: hidden; margin-bottom: 16px; width: 100%; min-width: 0; max-width: calc(100vw - 48px); }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 th { text-align: left; padding: 10px 14px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.2s; }
 th:hover { color: var(--text); }
@@ -165,14 +165,44 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
 @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes toastOut { to { opacity: 0; transform: translateY(10px); } }
 
+/* Secondary Metrics Row */
+.metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.metric-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; transition: border-color 0.2s; }
+.metric-card:hover { border-color: var(--text-muted); }
+.metric-card .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.metric-card .value { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
+.metric-card .sub { font-size: 0.75rem; margin-top: 1px; }
+.metric-card .value[title] { cursor: help; text-decoration-style: dotted; text-decoration-line: underline; text-decoration-color: var(--text-muted); }
+
+/* Equity Curve */
+.equity-curve-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; position: relative; }
+.equity-curve-card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+.equity-curve-card .range-toggles { display: flex; gap: 4px; }
+.equity-curve-card .range-btn { padding: 3px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: all 0.2s; background: none; }
+.equity-curve-card .range-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.equity-curve-card .range-btn:hover:not(.active) { border-color: var(--text-muted); color: var(--text); }
+.equity-curve-loading { display: flex; align-items: center; justify-content: center; height: 250px; color: var(--text-muted); gap: 10px; font-size: 0.85rem; }
+.equity-tooltip { position: absolute; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 0.8rem; pointer-events: none; z-index: 10; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.equity-tooltip .tt-date { color: var(--text-muted); font-size: 0.7rem; }
+.equity-tooltip .tt-value { font-weight: 700; font-size: 0.95rem; }
+
+/* Correlation Heatmap */
+.heatmap-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+.heatmap-card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 16px; }
+
 /* Responsive */
 @media (max-width: 768px) {
   main { padding: 10px; }
+  .table-wrap { max-width: calc(100vw - 20px); }
   header { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
   .summary-cards { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
   .summary-card { padding: 12px 14px; }
   .summary-card .value { font-size: 1.2rem; }
+  .metrics-row { grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .metric-card { padding: 10px 12px; }
+  .metric-card .value { font-size: 1rem; }
   .charts-row { grid-template-columns: 1fr; }
+  .chart-card { min-width: 0; }
   .chart-container { flex-direction: column; align-items: center; }
   .chart-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; justify-content: center; }
   .chat-panel { width: 100%; right: -100%; }
@@ -205,7 +235,7 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
     <button class="btn btn-secondary btn-sm" onclick="openApiKeyModal()" id="apiKeyBtn">
       <span class="api-status unset" id="apiStatusDot"></span> API Key
     </button>
-    <button class="btn btn-primary btn-sm" onclick="toggleChat()" id="chatToggleBtn">💬 AI Analyst</button>
+    <button class="btn btn-primary btn-sm" onclick="toggleChat()" id="chatToggleBtn">✦ AI Analyst</button>
   </div>
 </header>
 
@@ -234,6 +264,16 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
       <div class="value" id="posCount">0</div>
       <div class="sub neutral" id="posCountSub">&nbsp;</div>
     </div>
+  </div>
+
+  <!-- Performance Metrics -->
+  <div class="metrics-row" id="metricsRow">
+    <div class="metric-card"><div class="label">Sharpe Ratio</div><div class="value" id="metricSharpe">—</div><div class="sub neutral" id="metricSharpeSub">&nbsp;</div></div>
+    <div class="metric-card"><div class="label">Beta vs SPY</div><div class="value" id="metricBeta">—</div><div class="sub neutral" id="metricBetaSub">&nbsp;</div></div>
+    <div class="metric-card"><div class="label">Max Drawdown</div><div class="value negative" id="metricDrawdown">—</div><div class="sub neutral" id="metricDrawdownSub">&nbsp;</div></div>
+    <div class="metric-card"><div class="label">Volatility (Ann.)</div><div class="value" id="metricVol">—</div><div class="sub neutral" id="metricVolSub">&nbsp;</div></div>
+    <div class="metric-card"><div class="label">Best Position</div><div class="value positive" id="metricBest">—</div><div class="sub positive" id="metricBestSub">&nbsp;</div></div>
+    <div class="metric-card"><div class="label">Worst Position</div><div class="value negative" id="metricWorst">—</div><div class="sub negative" id="metricWorstSub">&nbsp;</div></div>
   </div>
 
   <!-- Toolbar -->
@@ -276,6 +316,28 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
     </div>
   </div>
 
+  <!-- Equity Curve -->
+  <div class="equity-curve-card" id="equityCurveCard">
+    <h3>
+      Equity Curve
+      <div class="range-toggles">
+        <button class="range-btn active" data-range="30D" onclick="setEquityRange(this)">30D</button>
+        <button class="range-btn" data-range="90D" onclick="setEquityRange(this)">90D</button>
+        <button class="range-btn" data-range="1Y" onclick="setEquityRange(this)">1Y</button>
+      </div>
+    </h3>
+    <div class="equity-curve-loading" id="equityCurveLoading"><div class="spinner"></div> Loading historical data…</div>
+    <canvas id="equityCurveCanvas" style="display:none; width:100%; height:280px;"></canvas>
+    <div class="equity-tooltip" id="equityTooltip"><div class="tt-date"></div><div class="tt-value"></div></div>
+  </div>
+
+  <!-- Correlation Heatmap -->
+  <div class="heatmap-card" id="heatmapCard">
+    <h3>Correlation Matrix (Top 8 Holdings)</h3>
+    <div class="equity-curve-loading" id="heatmapLoading"><div class="spinner"></div> Computing correlations…</div>
+    <canvas id="heatmapCanvas" style="display:none;"></canvas>
+  </div>
+
   <!-- Charts Row -->
   <div class="charts-row" id="chartsRow">
     <div class="chart-card">
@@ -301,7 +363,7 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
 <!-- Chat Panel -->
 <div class="chat-panel" id="chatPanel">
   <div class="chat-header">
-    <h3>🤖 AI Portfolio Analyst</h3>
+    <h3>✦ AI Portfolio Analyst</h3>
     <button class="chat-close" onclick="toggleChat()">✕</button>
   </div>
   <div class="chat-chips" id="chatChips">
@@ -408,6 +470,12 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
 // =====================================================================
 const STORAGE_KEY = 'campo_portfolio';
 const API_KEY_STORAGE = 'campo_api_key';
+// Allow demo key via URL param for testing (not for prod — use worker proxy)
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const dk = params.get('demo_key');
+  if (dk) { localStorage.setItem(API_KEY_STORAGE, dk); window.history.replaceState({}, '', window.location.pathname); }
+})();
 const DEMO_KEY = 'campo_demo_shown';
 let positions = [];
 let priceCache = {};
@@ -1028,6 +1096,463 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 // =====================================================================
+// HISTORICAL DATA & ADVANCED METRICS
+// =====================================================================
+let historicalData = {}; // ticker -> [{date, close}, ...]
+let equityCurveData = []; // [{date, value}, ...]
+let histDataReady = false;
+
+async function fetchHistorical(ticker, range='1mo') {
+  try {
+    const resp = await fetch(`https://yf-proxy.campolabs.ai/?t=${encodeURIComponent(ticker)}&range=${range}`, {signal: AbortSignal.timeout(10000)});
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const result = data?.chart?.result?.[0];
+    if (!result) return null;
+    const timestamps = result.timestamp || [];
+    const closes = result.indicators?.quote?.[0]?.close || [];
+    const points = [];
+    for (let i = 0; i < timestamps.length; i++) {
+      if (closes[i] != null) {
+        points.push({ date: new Date(timestamps[i] * 1000), close: closes[i] });
+      }
+    }
+    return points;
+  } catch(e) { return null; }
+}
+
+async function loadHistoricalData() {
+  const tickers = [...new Set(positions.map(p => p.ticker.toUpperCase()))];
+  // Also fetch SPY for beta
+  const allTickers = [...tickers, 'SPY'];
+  const batchSize = 5;
+  for (let i = 0; i < allTickers.length; i += batchSize) {
+    const batch = allTickers.slice(i, i + batchSize);
+    const results = await Promise.allSettled(batch.map(t => fetchHistorical(t, '1mo')));
+    results.forEach((r, idx) => {
+      if (r.status === 'fulfilled' && r.value && r.value.length > 0) {
+        historicalData[batch[idx]] = r.value;
+      }
+    });
+  }
+  histDataReady = true;
+  buildEquityCurve();
+  renderMetrics();
+  renderEquityCurve();
+  renderHeatmap();
+}
+
+function buildEquityCurve() {
+  // Find common dates across all holdings
+  const dateMap = {}; // dateStr -> {ticker: close}
+  positions.forEach(p => {
+    const tk = p.ticker.toUpperCase();
+    const hist = historicalData[tk];
+    if (!hist) return;
+    hist.forEach(pt => {
+      const ds = pt.date.toISOString().split('T')[0];
+      if (!dateMap[ds]) dateMap[ds] = {};
+      dateMap[ds][tk] = pt.close;
+    });
+  });
+
+  const dates = Object.keys(dateMap).sort();
+  equityCurveData = [];
+  let lastKnown = {};
+  dates.forEach(ds => {
+    let val = 0;
+    let valid = true;
+    positions.forEach(p => {
+      const tk = p.ticker.toUpperCase();
+      const price = dateMap[ds]?.[tk] ?? lastKnown[tk];
+      if (price != null) {
+        val += price * p.shares;
+        lastKnown[tk] = price;
+      } else {
+        val += p.avgCost * p.shares; // fallback to cost basis
+      }
+    });
+    equityCurveData.push({ date: ds, value: val });
+  });
+}
+
+function renderMetrics() {
+  const data = enriched();
+  if (data.length === 0) return;
+
+  // Best/Worst position
+  const withPL = data.filter(d => d.plPct != null);
+  if (withPL.length > 0) {
+    const best = withPL.reduce((a, b) => a.plPct > b.plPct ? a : b);
+    const worst = withPL.reduce((a, b) => a.plPct < b.plPct ? a : b);
+    document.getElementById('metricBest').textContent = best.ticker.toUpperCase();
+    document.getElementById('metricBest').className = 'value positive';
+    document.getElementById('metricBestSub').textContent = '+' + fmt(best.plPct) + '%';
+    document.getElementById('metricWorst').textContent = worst.ticker.toUpperCase();
+    document.getElementById('metricWorst').className = 'value negative';
+    document.getElementById('metricWorstSub').textContent = fmt(worst.plPct) + '%';
+  }
+
+  // Max Drawdown from equity curve
+  if (equityCurveData.length > 1) {
+    let peak = equityCurveData[0].value;
+    let maxDD = 0;
+    equityCurveData.forEach(pt => {
+      if (pt.value > peak) peak = pt.value;
+      const dd = (pt.value - peak) / peak;
+      if (dd < maxDD) maxDD = dd;
+    });
+    document.getElementById('metricDrawdown').textContent = fmt(maxDD * 100, 2) + '%';
+    document.getElementById('metricDrawdown').className = 'value negative';
+
+    // Daily returns for volatility & sharpe
+    const dailyReturns = [];
+    for (let i = 1; i < equityCurveData.length; i++) {
+      dailyReturns.push((equityCurveData[i].value - equityCurveData[i-1].value) / equityCurveData[i-1].value);
+    }
+
+    if (dailyReturns.length >= 5) {
+      const mean = dailyReturns.reduce((s, r) => s + r, 0) / dailyReturns.length;
+      const variance = dailyReturns.reduce((s, r) => s + (r - mean) ** 2, 0) / (dailyReturns.length - 1);
+      const stdDev = Math.sqrt(variance);
+      const annVol = stdDev * Math.sqrt(252);
+
+      document.getElementById('metricVol').textContent = fmt(annVol * 100, 1) + '%';
+      document.getElementById('metricVol').className = 'value';
+
+      // Sharpe: annualized
+      const annReturn = mean * 252;
+      const riskFree = 0.05;
+      const sharpe = stdDev > 0 ? (annReturn - riskFree) / annVol : 0;
+      document.getElementById('metricSharpe').textContent = fmt(sharpe, 2);
+      document.getElementById('metricSharpe').className = 'value ' + (sharpe >= 1 ? 'positive' : sharpe >= 0 ? '' : 'negative');
+      document.getElementById('metricSharpeSub').textContent = sharpe >= 2 ? 'Excellent' : sharpe >= 1 ? 'Good' : sharpe >= 0 ? 'Below avg' : 'Poor';
+    }
+  }
+
+  // Beta vs SPY
+  const spyHist = historicalData['SPY'];
+  if (spyHist && equityCurveData.length > 5) {
+    // Build daily returns aligned by date
+    const spyByDate = {};
+    spyHist.forEach(pt => { spyByDate[pt.date.toISOString().split('T')[0]] = pt.close; });
+    const spyDates = Object.keys(spyByDate).sort();
+    const spyReturns = [];
+    for (let i = 1; i < spyDates.length; i++) {
+      spyReturns.push({ date: spyDates[i], ret: (spyByDate[spyDates[i]] - spyByDate[spyDates[i-1]]) / spyByDate[spyDates[i-1]] });
+    }
+    const portByDate = {};
+    equityCurveData.forEach(pt => { portByDate[pt.date] = pt.value; });
+    const portDates = Object.keys(portByDate).sort();
+    const portReturns = [];
+    for (let i = 1; i < portDates.length; i++) {
+      portReturns.push({ date: portDates[i], ret: (portByDate[portDates[i]] - portByDate[portDates[i-1]]) / portByDate[portDates[i-1]] });
+    }
+    // Align
+    const spyRetMap = {};
+    spyReturns.forEach(r => { spyRetMap[r.date] = r.ret; });
+    const aligned = portReturns.filter(r => spyRetMap[r.date] != null).map(r => ({ port: r.ret, spy: spyRetMap[r.date] }));
+
+    if (aligned.length >= 5) {
+      const meanP = aligned.reduce((s, a) => s + a.port, 0) / aligned.length;
+      const meanS = aligned.reduce((s, a) => s + a.spy, 0) / aligned.length;
+      let cov = 0, varS = 0;
+      aligned.forEach(a => {
+        cov += (a.port - meanP) * (a.spy - meanS);
+        varS += (a.spy - meanS) ** 2;
+      });
+      const beta = varS > 0 ? cov / varS : 1;
+      document.getElementById('metricBeta').textContent = fmt(beta, 2);
+      document.getElementById('metricBeta').className = 'value';
+      document.getElementById('metricBetaSub').textContent = beta > 1.2 ? 'Aggressive' : beta > 0.8 ? 'Market-like' : 'Defensive';
+    } else {
+      document.getElementById('metricBeta').textContent = '—';
+      document.getElementById('metricBeta').title = 'Needs 30+ days of history';
+      document.getElementById('metricBetaSub').textContent = 'Insufficient data';
+    }
+  }
+}
+
+function renderEquityCurve() {
+  const loading = document.getElementById('equityCurveLoading');
+  const canvas = document.getElementById('equityCurveCanvas');
+  if (equityCurveData.length < 2) {
+    loading.innerHTML = 'Not enough data for equity curve';
+    return;
+  }
+  loading.style.display = 'none';
+  canvas.style.display = 'block';
+
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement;
+  const w = rect.clientWidth - 40;
+  const h = 280;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = { top: 20, right: 20, bottom: 40, left: 70 };
+  const chartW = w - pad.left - pad.right;
+  const chartH = h - pad.top - pad.bottom;
+
+  const values = equityCurveData.map(d => d.value);
+  const totalCost = positions.reduce((s, p) => s + p.avgCost * p.shares, 0);
+  const minVal = Math.min(Math.min(...values), totalCost) * 0.995;
+  const maxVal = Math.max(Math.max(...values), totalCost) * 1.005;
+  const range = maxVal - minVal || 1;
+
+  const xScale = (i) => pad.left + (i / (equityCurveData.length - 1)) * chartW;
+  const yScale = (v) => pad.top + chartH - ((v - minVal) / range) * chartH;
+
+  // Grid lines
+  ctx.strokeStyle = '#21262d';
+  ctx.lineWidth = 1;
+  const yTicks = 5;
+  for (let i = 0; i <= yTicks; i++) {
+    const v = minVal + (range * i / yTicks);
+    const y = yScale(v);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + chartW, y); ctx.stroke();
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('$' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v.toFixed(0)), pad.left - 8, y + 4);
+  }
+
+  // X-axis labels
+  ctx.textAlign = 'center';
+  const labelInterval = Math.max(1, Math.floor(equityCurveData.length / 6));
+  for (let i = 0; i < equityCurveData.length; i += labelInterval) {
+    const d = new Date(equityCurveData[i].date);
+    ctx.fillText((d.getMonth()+1) + '/' + d.getDate(), xScale(i), h - pad.bottom + 20);
+  }
+
+  // Cost basis dashed line
+  const costY = yScale(totalCost);
+  ctx.strokeStyle = '#d29922';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(pad.left, costY); ctx.lineTo(pad.left + chartW, costY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#d29922';
+  ctx.textAlign = 'left';
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.fillText('Cost Basis', pad.left + 4, costY - 5);
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+  grad.addColorStop(0, 'rgba(88, 166, 255, 0.25)');
+  grad.addColorStop(1, 'rgba(88, 166, 255, 0)');
+  ctx.beginPath();
+  ctx.moveTo(xScale(0), yScale(equityCurveData[0].value));
+  for (let i = 1; i < equityCurveData.length; i++) {
+    ctx.lineTo(xScale(i), yScale(equityCurveData[i].value));
+  }
+  ctx.lineTo(xScale(equityCurveData.length - 1), pad.top + chartH);
+  ctx.lineTo(xScale(0), pad.top + chartH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.moveTo(xScale(0), yScale(equityCurveData[0].value));
+  for (let i = 1; i < equityCurveData.length; i++) {
+    ctx.lineTo(xScale(i), yScale(equityCurveData[i].value));
+  }
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Crosshair hover
+  const tooltip = document.getElementById('equityTooltip');
+  canvas.onmousemove = (e) => {
+    const br = canvas.getBoundingClientRect();
+    const mx = (e.clientX - br.left);
+    const my = (e.clientY - br.top);
+    const idx = Math.round(((mx - pad.left) / chartW) * (equityCurveData.length - 1));
+    if (idx < 0 || idx >= equityCurveData.length) { tooltip.style.display = 'none'; return; }
+    const pt = equityCurveData[idx];
+    const px = xScale(idx);
+    const py = yScale(pt.value);
+
+    // Crosshair
+    ctx.clearRect(0, 0, w, h);
+    renderEquityCurve.__draw(ctx, w, h, pad, chartW, chartH, xScale, yScale, minVal, maxVal, range, totalCost, labelInterval, equityCurveData);
+
+    ctx.strokeStyle = 'rgba(139, 148, 158, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(px, pad.top); ctx.lineTo(px, pad.top + chartH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad.left, py); ctx.lineTo(pad.left + chartW, py); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Dot
+    ctx.beginPath();
+    ctx.arc(px, py, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#58a6ff';
+    ctx.fill();
+    ctx.strokeStyle = '#0d1117';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    tooltip.style.display = 'block';
+    tooltip.querySelector('.tt-date').textContent = pt.date;
+    tooltip.querySelector('.tt-value').textContent = '$' + fmt(pt.value, 0);
+    const ttLeft = Math.min(mx + 15, w - 140);
+    tooltip.style.left = ttLeft + 'px';
+    tooltip.style.top = (my - 50) + 'px';
+  };
+  canvas.onmouseleave = () => { tooltip.style.display = 'none'; };
+
+  // Store draw function for crosshair redraws
+  renderEquityCurve.__draw = function(ctx, w, h, pad, chartW, chartH, xScale, yScale, minVal, maxVal, range, totalCost, labelInterval, data) {
+    ctx.clearRect(0, 0, w, h);
+    // Grid
+    ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
+    const yTicks = 5;
+    for (let i = 0; i <= yTicks; i++) {
+      const v = minVal + (range * i / yTicks);
+      const y = yScale(v);
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + chartW, y); ctx.stroke();
+      ctx.fillStyle = '#8b949e'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'right';
+      ctx.fillText('$' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v.toFixed(0)), pad.left - 8, y + 4);
+    }
+    ctx.textAlign = 'center'; ctx.fillStyle = '#8b949e';
+    for (let i = 0; i < data.length; i += labelInterval) {
+      const d = new Date(data[i].date);
+      ctx.fillText((d.getMonth()+1) + '/' + d.getDate(), xScale(i), h - pad.bottom + 20);
+    }
+    const costY = yScale(totalCost);
+    ctx.strokeStyle = '#d29922'; ctx.lineWidth = 1; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(pad.left, costY); ctx.lineTo(pad.left + chartW, costY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#d29922'; ctx.textAlign = 'left'; ctx.font = '10px -apple-system, sans-serif';
+    ctx.fillText('Cost Basis', pad.left + 4, costY - 5);
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+    grad.addColorStop(0, 'rgba(88, 166, 255, 0.25)'); grad.addColorStop(1, 'rgba(88, 166, 255, 0)');
+    ctx.beginPath(); ctx.moveTo(xScale(0), yScale(data[0].value));
+    for (let i = 1; i < data.length; i++) ctx.lineTo(xScale(i), yScale(data[i].value));
+    ctx.lineTo(xScale(data.length - 1), pad.top + chartH); ctx.lineTo(xScale(0), pad.top + chartH);
+    ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(xScale(0), yScale(data[0].value));
+    for (let i = 1; i < data.length; i++) ctx.lineTo(xScale(i), yScale(data[i].value));
+    ctx.strokeStyle = '#58a6ff'; ctx.lineWidth = 2; ctx.stroke();
+  };
+}
+
+function setEquityRange(btn) {
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const range = btn.dataset.range;
+  if (range !== '30D') {
+    toast(range + ' range coming soon', 'info');
+    // Revert to 30D
+    btn.classList.remove('active');
+    document.querySelector('.range-btn[data-range="30D"]').classList.add('active');
+  }
+}
+
+function renderHeatmap() {
+  const loading = document.getElementById('heatmapLoading');
+  const canvas = document.getElementById('heatmapCanvas');
+  const data = enriched().sort((a, b) => b.weight - a.weight).slice(0, 8);
+  const tickers = data.map(d => d.ticker.toUpperCase()).filter(t => historicalData[t] && historicalData[t].length > 5);
+
+  if (tickers.length < 2) {
+    loading.innerHTML = 'Not enough data for correlation matrix';
+    return;
+  }
+
+  // Build daily returns per ticker
+  const returnsByTicker = {};
+  tickers.forEach(tk => {
+    const hist = historicalData[tk];
+    const rets = [];
+    for (let i = 1; i < hist.length; i++) {
+      rets.push({ date: hist[i].date.toISOString().split('T')[0], ret: (hist[i].close - hist[i-1].close) / hist[i-1].close });
+    }
+    returnsByTicker[tk] = rets;
+  });
+
+  // Correlation function
+  function corr(tk1, tk2) {
+    const r1Map = {}; returnsByTicker[tk1].forEach(r => { r1Map[r.date] = r.ret; });
+    const aligned = returnsByTicker[tk2].filter(r => r1Map[r.date] != null).map(r => ({ a: r1Map[r.date], b: r.ret }));
+    if (aligned.length < 3) return null;
+    const meanA = aligned.reduce((s, x) => s + x.a, 0) / aligned.length;
+    const meanB = aligned.reduce((s, x) => s + x.b, 0) / aligned.length;
+    let cov = 0, varA = 0, varB = 0;
+    aligned.forEach(x => { cov += (x.a - meanA) * (x.b - meanB); varA += (x.a - meanA) ** 2; varB += (x.b - meanB) ** 2; });
+    const denom = Math.sqrt(varA * varB);
+    return denom > 0 ? cov / denom : 0;
+  }
+
+  const n = tickers.length;
+  const matrix = [];
+  for (let i = 0; i < n; i++) {
+    matrix[i] = [];
+    for (let j = 0; j < n; j++) {
+      matrix[i][j] = i === j ? 1 : corr(tickers[i], tickers[j]) ?? 0;
+    }
+  }
+
+  loading.style.display = 'none';
+  canvas.style.display = 'block';
+
+  const dpr = window.devicePixelRatio || 1;
+  const cellSize = 50;
+  const labelW = 55;
+  const totalW = labelW + n * cellSize;
+  const totalH = labelW + n * cellSize;
+  canvas.style.width = totalW + 'px';
+  canvas.style.height = totalH + 'px';
+  canvas.width = totalW * dpr;
+  canvas.height = totalH * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Color scale: green (low) -> yellow (mid) -> red (high)
+  function corrColor(v) {
+    const abs = Math.abs(v);
+    if (abs > 0.7) { const t = (abs - 0.7) / 0.3; return `rgb(${200 + 55*t}, ${80 - 40*t}, ${60 - 30*t})`; }
+    if (abs > 0.3) { const t = (abs - 0.3) / 0.4; return `rgb(${100 + 100*t}, ${150 + 60*t - 130*t}, ${50 + 10*t})`; }
+    return `rgb(${60 + 40*(abs/0.3)}, ${150 + 30*(abs/0.3)}, ${80 - 30*(abs/0.3)})`; 
+  }
+
+  // Draw cells
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const x = labelW + j * cellSize;
+      const y = labelW + i * cellSize;
+      ctx.fillStyle = corrColor(matrix[i][j]);
+      ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+      ctx.fillStyle = '#e6edf3';
+      ctx.font = 'bold 11px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(matrix[i][j].toFixed(2), x + cellSize / 2, y + cellSize / 2 + 4);
+    }
+  }
+
+  // Labels
+  ctx.fillStyle = '#8b949e';
+  ctx.font = '11px -apple-system, sans-serif';
+  for (let i = 0; i < n; i++) {
+    ctx.textAlign = 'right';
+    ctx.fillText(tickers[i], labelW - 5, labelW + i * cellSize + cellSize / 2 + 4);
+    ctx.save();
+    ctx.translate(labelW + i * cellSize + cellSize / 2, labelW - 5);
+    ctx.rotate(-Math.PI / 4);
+    ctx.textAlign = 'left';
+    ctx.fillText(tickers[i], 0, 0);
+    ctx.restore();
+  }
+}
+
+// =====================================================================
 // INIT
 // =====================================================================
 function renderAll() {
@@ -1036,14 +1561,16 @@ function renderAll() {
   renderCharts();
 }
 
-function init() {
+async function init() {
   updateApiStatus();
   const hasData = load();
   if (!hasData || positions.length === 0) {
     initDemo();
   }
   renderAll();
-  refreshPrices();
+  await refreshPrices();
+  // After prices loaded, fetch historical data
+  loadHistoricalData();
 }
 
 init();
