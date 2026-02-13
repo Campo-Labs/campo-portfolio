@@ -2035,8 +2035,9 @@ ${portfolioCtx}`;
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [{ role: 'user', content: roastPrompt }],
+          messages: [{ role: 'user', content: 'Roast my portfolio.' }],
           portfolioContext: portfolioCtx,
+          roast: true,
         }),
       });
       if (!resp.ok) throw new Error('Service error');
