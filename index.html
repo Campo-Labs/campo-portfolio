@@ -1864,15 +1864,22 @@ function runMonteCarlo() {
     return;
   }
 
-  // Calculate daily returns from equity curve
-  const dailyReturns = [];
+  // Calculate daily LOG returns from equity curve (for geometric Brownian motion)
+  const logReturns = [];
   for (let i = 1; i < equityCurveData.length; i++) {
-    dailyReturns.push((equityCurveData[i].value - equityCurveData[i-1].value) / equityCurveData[i-1].value);
+    const ratio = equityCurveData[i].value / equityCurveData[i-1].value;
+    if (ratio > 0) logReturns.push(Math.log(ratio));
   }
 
-  const mean = dailyReturns.reduce((s, r) => s + r, 0) / dailyReturns.length;
-  const variance = dailyReturns.reduce((s, r) => s + (r - mean) ** 2, 0) / (dailyReturns.length - 1);
-  const stdDev = Math.sqrt(variance);
+  if (logReturns.length < 2) {
+    toast('Not enough return data for simulation', 'error');
+    btn.disabled = false; btn.textContent = 'Run Monte Carlo';
+    return;
+  }
+
+  const mu = logReturns.reduce((s, r) => s + r, 0) / logReturns.length;
+  const variance = logReturns.reduce((s, r) => s + (r - mu) ** 2, 0) / (logReturns.length - 1);
+  const sigma = Math.sqrt(variance);
 
   const currentVal = equityCurveData[equityCurveData.length - 1].value;
   const numSims = 1000;
@@ -1891,7 +1898,7 @@ function runMonteCarlo() {
     const path = [currentVal];
     let val = currentVal;
     for (let d = 0; d < tradingDays; d++) {
-      val *= (1 + mean + stdDev * randn());
+      val *= Math.exp(mu + sigma * randn());
       path.push(val);
     }
     simResults.push(path);
@@ -1984,9 +1991,9 @@ function runMonteCarlo() {
   statsDiv.style.gridTemplateColumns = 'repeat(3, 1fr)';
   statsDiv.style.gap = '12px';
   statsDiv.innerHTML = `
-    <div class="metric-card"><div class="label">Worst Likely (10th %ile)</div><div class="value negative">${fmtUSD(finalP10)}</div><div class="sub negative">${((finalP10/currentVal - 1)*100).toFixed(1)}%</div></div>
-    <div class="metric-card"><div class="label">Median Outcome</div><div class="value">${fmtUSD(finalP50)}</div><div class="sub ${plClass(finalP50 - currentVal)}">${((finalP50/currentVal - 1)*100).toFixed(1)}%</div></div>
-    <div class="metric-card"><div class="label">Best Likely (90th %ile)</div><div class="value positive">${fmtUSD(finalP90)}</div><div class="sub positive">+${((finalP90/currentVal - 1)*100).toFixed(1)}%</div></div>
+    <div class="metric-card"><div class="label">Worst Likely (10th %ile)</div><div class="value ${plClass(finalP10 - currentVal)}">${fmtUSD(finalP10)}</div><div class="sub ${plClass(finalP10 - currentVal)}">${((finalP10/currentVal - 1)*100).toFixed(1)}%</div></div>
+    <div class="metric-card"><div class="label">Median Outcome</div><div class="value ${plClass(finalP50 - currentVal)}">${fmtUSD(finalP50)}</div><div class="sub ${plClass(finalP50 - currentVal)}">${((finalP50/currentVal - 1)*100).toFixed(1)}%</div></div>
+    <div class="metric-card"><div class="label">Best Likely (90th %ile)</div><div class="value ${plClass(finalP90 - currentVal)}">${fmtUSD(finalP90)}</div><div class="sub ${plClass(finalP90 - currentVal)}">+${((finalP90/currentVal - 1)*100).toFixed(1)}%</div></div>
   `;
 
   btn.disabled = false; btn.textContent = 'Run Monte Carlo';
