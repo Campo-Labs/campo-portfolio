@@ -187,7 +187,7 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
 .equity-tooltip .tt-value { font-weight: 700; font-size: 0.95rem; }
 
 /* Correlation Heatmap */
-.heatmap-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+.heatmap-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; overflow-x: auto; max-width: 100%; }
 .heatmap-card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 16px; }
 
 /* Responsive */
@@ -235,6 +235,7 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
     <button class="btn btn-secondary btn-sm" onclick="openApiKeyModal()" id="apiKeyBtn">
       <span class="api-status unset" id="apiStatusDot"></span> API Key
     </button>
+    <button class="btn btn-secondary btn-sm" onclick="openRoastMode()">🔥 Roast Me</button>
     <button class="btn btn-primary btn-sm" onclick="toggleChat()" id="chatToggleBtn">✦ AI Analyst</button>
   </div>
 </header>
@@ -282,6 +283,7 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
       <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Position</button>
       <button class="btn btn-secondary btn-sm" onclick="openCsvModal()">📋 Import CSV</button>
       <button class="btn btn-secondary btn-sm" onclick="refreshPrices()"><span id="refreshIcon">↻</span> Refresh</button>
+      <button class="btn btn-secondary btn-sm" onclick="openExportModal()">📄 Export Report</button>
     </div>
     <div class="toolbar-right">
       <span class="refresh-indicator" id="lastRefresh"></span>
@@ -324,6 +326,7 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
         <button class="range-btn active" data-range="30D" onclick="setEquityRange(this)">30D</button>
         <button class="range-btn" data-range="90D" onclick="setEquityRange(this)">90D</button>
         <button class="range-btn" data-range="1Y" onclick="setEquityRange(this)">1Y</button>
+        <button class="range-btn" id="spyToggle" onclick="toggleSpyOverlay(this)" style="margin-left:8px; border-color:var(--yellow);">vs SPY</button>
       </div>
     </h3>
     <div class="equity-curve-loading" id="equityCurveLoading"><div class="spinner"></div> Loading historical data…</div>
@@ -336,6 +339,17 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
     <h3>Correlation Matrix (Top 8 Holdings)</h3>
     <div class="equity-curve-loading" id="heatmapLoading"><div class="spinner"></div> Computing correlations…</div>
     <canvas id="heatmapCanvas" style="display:none;"></canvas>
+  </div>
+
+  <!-- Monte Carlo Simulation -->
+  <div class="chart-card" id="monteCarloCard" style="margin-bottom:16px;">
+    <h3 style="display:flex; align-items:center; justify-content:space-between;">
+      Monte Carlo Simulation (12-Month Forward)
+      <button class="btn btn-primary btn-sm" onclick="runMonteCarlo()" id="mcRunBtn">Run Monte Carlo</button>
+    </h3>
+    <div id="mcEmpty" style="text-align:center; padding:40px 20px; color:var(--text-muted); font-size:0.85rem;">Click "Run Monte Carlo" to simulate 1,000 possible portfolio outcomes over 12 months.</div>
+    <canvas id="monteCarloCanvas" style="display:none; width:100%; height:300px;"></canvas>
+    <div id="mcStats" style="display:none; margin-top:12px;"></div>
   </div>
 
   <!-- Charts Row -->
@@ -461,8 +475,58 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
   </div>
 </div>
 
+<!-- Roast Modal -->
+<div class="modal-overlay" id="roastModal">
+  <div class="modal" style="max-width:560px;">
+    <h2>🔥 Portfolio Roast</h2>
+    <div id="roastContent" style="font-size:0.9rem; line-height:1.7; color:var(--text); white-space:pre-wrap; margin-bottom:16px;">
+      <div style="text-align:center; padding:30px;"><div class="spinner"></div><br>Generating your roast…</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="roastShareBtn" onclick="shareRoast()" style="margin-right:auto; display:none;">🔗 Share</button>
+      <button class="btn btn-secondary" onclick="closeModal('roastModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Report Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal" style="text-align:center;">
+    <h2>📄 Export Portfolio Report</h2>
+    <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:20px;">Enter your email to receive a PDF report of your portfolio analysis.</p>
+    <div class="form-group">
+      <input type="email" id="inputExportEmail" placeholder="you@example.com">
+    </div>
+    <div class="modal-actions" style="justify-content:center;">
+      <button class="btn btn-secondary" onclick="closeModal('exportModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- Print Stylesheet -->
+<style media="print">
+  @page { margin: 0.5in; }
+  body { background: #fff !important; color: #000 !important; font-size: 12px; }
+  header, footer, .chat-panel, .toolbar, .demo-banner, .toast-container, .modal-overlay,
+  .actions-cell, .search-input, .refresh-indicator, .range-toggles, #mcRunBtn,
+  .btn, .header-actions, #monteCarloCard, #heatmapCard { display: none !important; }
+  .summary-card, .metric-card, .chart-card, .equity-curve-card, .table-wrap, .heatmap-card {
+    background: #fff !important; border: 1px solid #ccc !important; break-inside: avoid;
+  }
+  .summary-card .value, .metric-card .value { color: #000 !important; }
+  .summary-card .label, .metric-card .label { color: #666 !important; }
+  .positive { color: #2e7d32 !important; }
+  .negative { color: #c62828 !important; }
+  td, th { color: #000 !important; border-color: #ccc !important; }
+  .ticker-cell { color: #1565c0 !important; }
+  #printRoast { display: block !important; break-inside: avoid; margin-top: 20px; padding: 16px; border: 1px solid #ccc; border-radius: 8px; }
+  #printRoast h3 { margin-bottom: 8px; }
+</style>
+
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
+<div id="printRoast" style="display:none;"></div>
 
 <script>
 // =====================================================================
@@ -1532,8 +1596,10 @@ function renderHeatmap() {
   canvas.style.display = 'block';
 
   const dpr = window.devicePixelRatio || 1;
-  const cellSize = 50;
-  const labelW = 55;
+  const containerW = canvas.parentElement.clientWidth - 40; // account for padding
+  const maxCellSize = 50;
+  const cellSize = Math.min(maxCellSize, Math.floor((containerW - 55) / n));
+  const labelW = Math.min(55, cellSize + 5);
   const totalW = labelW + n * cellSize;
   const totalH = labelW + n * cellSize;
   canvas.style.width = totalW + 'px';
@@ -1600,6 +1666,505 @@ async function init() {
   // After prices loaded, fetch historical data
   loadHistoricalData();
 }
+
+// =====================================================================
+// FEATURE 1: SPY OVERLAY ON EQUITY CURVE
+// =====================================================================
+let showSpyOverlay = false;
+let spyHistoricalData = null;
+
+function toggleSpyOverlay(btn) {
+  showSpyOverlay = !showSpyOverlay;
+  btn.classList.toggle('active', showSpyOverlay);
+  if (showSpyOverlay && !spyHistoricalData && historicalData['SPY']) {
+    spyHistoricalData = historicalData['SPY'];
+  }
+  if (showSpyOverlay && !spyHistoricalData) {
+    fetchHistorical('SPY', '1mo').then(data => {
+      if (data) { spyHistoricalData = data; historicalData['SPY'] = data; }
+      renderEquityCurve();
+    });
+  } else {
+    renderEquityCurve();
+  }
+}
+
+// Monkey-patch renderEquityCurve to support SPY overlay
+const _origRenderEquityCurve = renderEquityCurve;
+renderEquityCurve = function() {
+  const loading = document.getElementById('equityCurveLoading');
+  const canvas = document.getElementById('equityCurveCanvas');
+  if (equityCurveData.length < 2) { loading.innerHTML = 'Not enough data for equity curve'; return; }
+  loading.style.display = 'none';
+  canvas.style.display = 'block';
+
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement;
+  const w = rect.clientWidth - 40;
+  const h = 280;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = { top: 20, right: 20, bottom: 40, left: 70 };
+  const chartW = w - pad.left - pad.right;
+  const chartH = h - pad.top - pad.bottom;
+
+  // Normalize data if SPY overlay active
+  let portNorm = equityCurveData.map(d => d.value);
+  let spyNorm = null;
+  let spyByDate = {};
+
+  if (showSpyOverlay && spyHistoricalData) {
+    spyHistoricalData.forEach(pt => { spyByDate[pt.date.toISOString().split('T')[0]] = pt.close; });
+    const startVal = portNorm[0];
+    portNorm = portNorm.map(v => (v / startVal) * 100);
+    // Build aligned SPY normalized
+    const firstSpyDate = equityCurveData[0].date;
+    const firstSpyClose = spyByDate[firstSpyDate];
+    if (firstSpyClose) {
+      spyNorm = equityCurveData.map(d => {
+        const sc = spyByDate[d.date];
+        return sc ? (sc / firstSpyClose) * 100 : null;
+      });
+    }
+  }
+
+  const values = showSpyOverlay ? portNorm : equityCurveData.map(d => d.value);
+  let allVals = [...values.filter(v => v != null)];
+  if (spyNorm) allVals = allVals.concat(spyNorm.filter(v => v != null));
+
+  const totalCost = positions.reduce((s, p) => s + p.avgCost * p.shares, 0);
+  const costNorm = showSpyOverlay ? (totalCost / equityCurveData[0].value) * 100 : totalCost;
+
+  const minVal = Math.min(Math.min(...allVals), showSpyOverlay ? 95 : costNorm) * 0.995;
+  const maxVal = Math.max(Math.max(...allVals), showSpyOverlay ? 105 : costNorm) * 1.005;
+  const range = maxVal - minVal || 1;
+
+  const xScale = (i) => pad.left + (i / (equityCurveData.length - 1)) * chartW;
+  const yScale = (v) => pad.top + chartH - ((v - minVal) / range) * chartH;
+
+  function drawFrame() {
+    ctx.clearRect(0, 0, w, h);
+    // Grid
+    ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
+    const yTicks = 5;
+    for (let i = 0; i <= yTicks; i++) {
+      const v = minVal + (range * i / yTicks);
+      const y = yScale(v);
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + chartW, y); ctx.stroke();
+      ctx.fillStyle = '#8b949e'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'right';
+      if (showSpyOverlay) ctx.fillText(v.toFixed(1), pad.left - 8, y + 4);
+      else ctx.fillText('$' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v.toFixed(0)), pad.left - 8, y + 4);
+    }
+    ctx.textAlign = 'center'; ctx.fillStyle = '#8b949e';
+    const labelInterval = Math.max(1, Math.floor(equityCurveData.length / 6));
+    for (let i = 0; i < equityCurveData.length; i += labelInterval) {
+      const d = new Date(equityCurveData[i].date);
+      ctx.fillText((d.getMonth()+1) + '/' + d.getDate(), xScale(i), h - pad.bottom + 20);
+    }
+
+    if (!showSpyOverlay) {
+      // Cost basis line
+      const costY = yScale(totalCost);
+      ctx.strokeStyle = '#d29922'; ctx.lineWidth = 1; ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(pad.left, costY); ctx.lineTo(pad.left + chartW, costY); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#d29922'; ctx.textAlign = 'left'; ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillText('Cost Basis', pad.left + 4, costY - 5);
+    }
+
+    // SPY line (draw first, behind portfolio)
+    if (spyNorm) {
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i < spyNorm.length; i++) {
+        if (spyNorm[i] == null) continue;
+        if (!started) { ctx.moveTo(xScale(i), yScale(spyNorm[i])); started = true; }
+        else ctx.lineTo(xScale(i), yScale(spyNorm[i]));
+      }
+      ctx.strokeStyle = '#d29922'; ctx.lineWidth = 2; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+      // Label
+      ctx.fillStyle = '#d29922'; ctx.font = 'bold 10px -apple-system, sans-serif'; ctx.textAlign = 'left';
+      const lastSpy = spyNorm.filter(v => v != null);
+      if (lastSpy.length) ctx.fillText('SPY', xScale(equityCurveData.length - 1) - 30, yScale(lastSpy[lastSpy.length-1]) - 6);
+    }
+
+    // Portfolio gradient fill
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+    grad.addColorStop(0, 'rgba(88, 166, 255, 0.25)'); grad.addColorStop(1, 'rgba(88, 166, 255, 0)');
+    ctx.beginPath(); ctx.moveTo(xScale(0), yScale(values[0]));
+    for (let i = 1; i < values.length; i++) ctx.lineTo(xScale(i), yScale(values[i]));
+    ctx.lineTo(xScale(values.length - 1), pad.top + chartH); ctx.lineTo(xScale(0), pad.top + chartH);
+    ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+
+    // Portfolio line
+    ctx.beginPath(); ctx.moveTo(xScale(0), yScale(values[0]));
+    for (let i = 1; i < values.length; i++) ctx.lineTo(xScale(i), yScale(values[i]));
+    ctx.strokeStyle = '#58a6ff'; ctx.lineWidth = 2; ctx.stroke();
+
+    if (showSpyOverlay) {
+      ctx.fillStyle = '#58a6ff'; ctx.font = 'bold 10px -apple-system, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('Portfolio', xScale(equityCurveData.length - 1) - 50, yScale(values[values.length-1]) - 6);
+    }
+  }
+
+  drawFrame();
+
+  // Tooltip
+  const tooltip = document.getElementById('equityTooltip');
+  canvas.onmousemove = (e) => {
+    const br = canvas.getBoundingClientRect();
+    const mx = e.clientX - br.left;
+    const my = e.clientY - br.top;
+    const idx = Math.round(((mx - pad.left) / chartW) * (equityCurveData.length - 1));
+    if (idx < 0 || idx >= equityCurveData.length) { tooltip.style.display = 'none'; return; }
+    const pt = equityCurveData[idx];
+    drawFrame();
+
+    const px = xScale(idx);
+    const py = yScale(values[idx]);
+    ctx.strokeStyle = 'rgba(139, 148, 158, 0.4)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(px, pad.top); ctx.lineTo(px, pad.top + chartH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fillStyle = '#58a6ff'; ctx.fill();
+    ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 2; ctx.stroke();
+
+    if (spyNorm && spyNorm[idx] != null) {
+      const spy = yScale(spyNorm[idx]);
+      ctx.beginPath(); ctx.arc(px, spy, 4, 0, Math.PI * 2); ctx.fillStyle = '#d29922'; ctx.fill();
+      ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 2; ctx.stroke();
+    }
+
+    tooltip.style.display = 'block';
+    tooltip.querySelector('.tt-date').textContent = pt.date;
+    let ttText = showSpyOverlay ? `Portfolio: ${values[idx].toFixed(1)}` : '$' + fmt(pt.value, 0);
+    if (spyNorm && spyNorm[idx] != null) ttText += `  |  SPY: ${spyNorm[idx].toFixed(1)}`;
+    tooltip.querySelector('.tt-value').textContent = ttText;
+    tooltip.style.left = Math.min(mx + 15, w - 180) + 'px';
+    tooltip.style.top = (my - 50) + 'px';
+  };
+  canvas.onmouseleave = () => { tooltip.style.display = 'none'; };
+};
+
+// =====================================================================
+// FEATURE 2: MONTE CARLO SIMULATION
+// =====================================================================
+function runMonteCarlo() {
+  const btn = document.getElementById('mcRunBtn');
+  btn.disabled = true; btn.textContent = 'Running…';
+
+  if (equityCurveData.length < 5) {
+    toast('Need historical data first — wait for prices to load', 'error');
+    btn.disabled = false; btn.textContent = 'Run Monte Carlo';
+    return;
+  }
+
+  // Calculate daily returns from equity curve
+  const dailyReturns = [];
+  for (let i = 1; i < equityCurveData.length; i++) {
+    dailyReturns.push((equityCurveData[i].value - equityCurveData[i-1].value) / equityCurveData[i-1].value);
+  }
+
+  const mean = dailyReturns.reduce((s, r) => s + r, 0) / dailyReturns.length;
+  const variance = dailyReturns.reduce((s, r) => s + (r - mean) ** 2, 0) / (dailyReturns.length - 1);
+  const stdDev = Math.sqrt(variance);
+
+  const currentVal = equityCurveData[equityCurveData.length - 1].value;
+  const numSims = 1000;
+  const tradingDays = 252; // 12 months
+  const simResults = []; // each sim is array of values
+
+  // Box-Muller transform for normal random
+  function randn() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  for (let s = 0; s < numSims; s++) {
+    const path = [currentVal];
+    let val = currentVal;
+    for (let d = 0; d < tradingDays; d++) {
+      val *= (1 + mean + stdDev * randn());
+      path.push(val);
+    }
+    simResults.push(path);
+  }
+
+  // Compute percentiles at each time step
+  const percentiles = { p10: [], p25: [], p50: [], p75: [], p90: [] };
+  for (let d = 0; d <= tradingDays; d++) {
+    const vals = simResults.map(s => s[d]).sort((a, b) => a - b);
+    percentiles.p10.push(vals[Math.floor(numSims * 0.1)]);
+    percentiles.p25.push(vals[Math.floor(numSims * 0.25)]);
+    percentiles.p50.push(vals[Math.floor(numSims * 0.5)]);
+    percentiles.p75.push(vals[Math.floor(numSims * 0.75)]);
+    percentiles.p90.push(vals[Math.floor(numSims * 0.9)]);
+  }
+
+  // Render fan chart
+  document.getElementById('mcEmpty').style.display = 'none';
+  const canvas = document.getElementById('monteCarloCanvas');
+  canvas.style.display = 'block';
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth - 40;
+  const h = 300;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const pad = { top: 20, right: 20, bottom: 40, left: 80 };
+  const chartW = w - pad.left - pad.right;
+  const chartH = h - pad.top - pad.bottom;
+  const allVals = [...percentiles.p10, ...percentiles.p90];
+  const minV = Math.min(...allVals) * 0.98;
+  const maxV = Math.max(...allVals) * 1.02;
+  const rng = maxV - minV || 1;
+  const xS = (i) => pad.left + (i / tradingDays) * chartW;
+  const yS = (v) => pad.top + chartH - ((v - minV) / rng) * chartH;
+
+  // Grid
+  ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const v = minV + rng * i / 5;
+    const y = yS(v);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + chartW, y); ctx.stroke();
+    ctx.fillStyle = '#8b949e'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText('$' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v.toFixed(0)), pad.left - 8, y + 4);
+  }
+  // X labels (months)
+  ctx.textAlign = 'center';
+  for (let m = 0; m <= 12; m++) {
+    const d = Math.round(m * tradingDays / 12);
+    ctx.fillText(m + 'mo', xS(d), h - pad.bottom + 20);
+  }
+
+  // Fill bands
+  function fillBand(upper, lower, color) {
+    ctx.beginPath();
+    for (let i = 0; i <= tradingDays; i++) ctx.lineTo(xS(i), yS(upper[i]));
+    for (let i = tradingDays; i >= 0; i--) ctx.lineTo(xS(i), yS(lower[i]));
+    ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+  }
+  fillBand(percentiles.p90, percentiles.p10, 'rgba(88,166,255,0.08)');
+  fillBand(percentiles.p75, percentiles.p25, 'rgba(88,166,255,0.15)');
+
+  // Median line
+  ctx.beginPath();
+  for (let i = 0; i <= tradingDays; i++) { if (i === 0) ctx.moveTo(xS(i), yS(percentiles.p50[i])); else ctx.lineTo(xS(i), yS(percentiles.p50[i])); }
+  ctx.strokeStyle = '#58a6ff'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Current value line
+  ctx.strokeStyle = '#d29922'; ctx.lineWidth = 1; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(pad.left, yS(currentVal)); ctx.lineTo(pad.left + chartW, yS(currentVal)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#d29922'; ctx.font = '10px -apple-system, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('Current', pad.left + 4, yS(currentVal) - 5);
+
+  // Legend
+  ctx.font = '10px -apple-system, sans-serif'; ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(88,166,255,0.5)'; ctx.fillRect(w - pad.right - 120, pad.top, 10, 10);
+  ctx.fillStyle = '#8b949e'; ctx.fillText('25th–75th %ile', w - pad.right - 5, pad.top + 9);
+  ctx.fillStyle = 'rgba(88,166,255,0.2)'; ctx.fillRect(w - pad.right - 120, pad.top + 15, 10, 10);
+  ctx.fillStyle = '#8b949e'; ctx.fillText('10th–90th %ile', w - pad.right - 5, pad.top + 24);
+
+  // Stats
+  const finalP50 = percentiles.p50[tradingDays];
+  const finalP10 = percentiles.p10[tradingDays];
+  const finalP90 = percentiles.p90[tradingDays];
+  const statsDiv = document.getElementById('mcStats');
+  statsDiv.style.display = 'grid';
+  statsDiv.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  statsDiv.style.gap = '12px';
+  statsDiv.innerHTML = `
+    <div class="metric-card"><div class="label">Worst Likely (10th %ile)</div><div class="value negative">${fmtUSD(finalP10)}</div><div class="sub negative">${((finalP10/currentVal - 1)*100).toFixed(1)}%</div></div>
+    <div class="metric-card"><div class="label">Median Outcome</div><div class="value">${fmtUSD(finalP50)}</div><div class="sub ${plClass(finalP50 - currentVal)}">${((finalP50/currentVal - 1)*100).toFixed(1)}%</div></div>
+    <div class="metric-card"><div class="label">Best Likely (90th %ile)</div><div class="value positive">${fmtUSD(finalP90)}</div><div class="sub positive">+${((finalP90/currentVal - 1)*100).toFixed(1)}%</div></div>
+  `;
+
+  btn.disabled = false; btn.textContent = 'Run Monte Carlo';
+  toast('Monte Carlo simulation complete', 'success');
+}
+
+// =====================================================================
+// FEATURE 3: ROAST MY PORTFOLIO
+// =====================================================================
+let lastRoastText = '';
+
+async function openRoastMode() {
+  openModal('roastModal');
+  document.getElementById('roastContent').innerHTML = '<div style="text-align:center; padding:30px;"><div class="spinner"></div><br>Generating your roast…</div>';
+  document.getElementById('roastShareBtn').style.display = 'none';
+
+  const portfolioCtx = buildPortfolioContext();
+  const roastPrompt = `You are a brutally honest but funny and warm portfolio roast comedian. Roast this portfolio based on the data below. Reference specific positions, concentration risk, sector bias, returns, and any questionable decisions. Be witty and creative — think comedy roast, not insult. Keep it to 3-4 short paragraphs.
+
+${portfolioCtx}`;
+
+  try {
+    const byokKey = localStorage.getItem(API_KEY_STORAGE);
+    let reply;
+    if (byokKey) {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': byokKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          system: 'You are a witty portfolio roast comedian. Be funny and warm, never mean. Reference actual data.',
+          messages: [{ role: 'user', content: roastPrompt }],
+        }),
+      });
+      if (!resp.ok) throw new Error('API error');
+      const data = await resp.json();
+      reply = data?.content?.[0]?.text || 'Could not generate roast.';
+    } else {
+      const resp = await fetch(CHAT_WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: roastPrompt }],
+          portfolioContext: portfolioCtx,
+        }),
+      });
+      if (!resp.ok) throw new Error('Service error');
+      const data = await resp.json();
+      reply = data?.reply || 'Could not generate roast.';
+    }
+    lastRoastText = reply;
+    document.getElementById('roastContent').textContent = reply;
+    document.getElementById('roastShareBtn').style.display = 'inline-flex';
+  } catch(e) {
+    document.getElementById('roastContent').textContent = '⚠️ Failed to generate roast: ' + e.message;
+  }
+}
+
+function shareRoast() {
+  if (!lastRoastText) return;
+  const data = enriched();
+  const totalVal = data.reduce((s, d) => s + d.mktVal, 0);
+  const summary = { nav: fmtUSD(totalVal), positions: data.length, roast: lastRoastText };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(summary))));
+  const url = `https://portfolio.campolabs.ai/roast?d=${encoded}`;
+  navigator.clipboard.writeText(url).then(() => toast('Share link copied!', 'success')).catch(() => {
+    prompt('Copy this link:', url);
+  });
+}
+
+// Check if we're on a roast share page
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const d = params.get('d');
+  if (d && window.location.pathname.includes('/roast')) {
+    try {
+      const data = JSON.parse(decodeURIComponent(escape(atob(d))));
+      document.body.innerHTML = `<div style="max-width:500px;margin:60px auto;padding:30px;background:var(--card);border:1px solid var(--border);border-radius:12px;font-family:var(--font);">
+        <h2 style="margin-bottom:8px;">🔥 Portfolio Roast</h2>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:20px;">${data.nav} portfolio · ${data.positions} positions</p>
+        <div style="white-space:pre-wrap;line-height:1.7;">${data.roast}</div>
+        <p style="margin-top:20px;font-size:0.8rem;color:var(--text-muted);">Generated by <a href="https://portfolio.campolabs.ai">Campo Portfolio</a></p>
+      </div>`;
+    } catch(e) {}
+  }
+})();
+
+// =====================================================================
+// FEATURE 4: EXPORT TO PDF (PRINT-BASED)
+// =====================================================================
+function openExportModal() { openModal('exportModal'); document.getElementById('inputExportEmail').focus(); }
+
+function generateReport() {
+  const email = document.getElementById('inputExportEmail').value.trim();
+  if (!email || !email.includes('@')) { toast('Enter a valid email', 'error'); return; }
+  console.log('[Campo Portfolio] Email captured for report:', email);
+  closeModal('exportModal');
+
+  // Prepare print roast if available
+  const printRoast = document.getElementById('printRoast');
+  if (lastRoastText) {
+    printRoast.innerHTML = `<h3>🔥 AI Portfolio Roast</h3><p style="white-space:pre-wrap;">${lastRoastText}</p>`;
+    printRoast.style.display = 'none'; // print stylesheet shows it
+  }
+
+  toast('Generating report… Print dialog will open.', 'success');
+  setTimeout(() => window.print(), 500);
+}
+
+// =====================================================================
+// FEATURE 5: VERIFY/FIX LIVE PRICE LOOKUP
+// =====================================================================
+// Enhanced fetchPrice with additional fallback
+const _origFetchPrice = fetchPrice;
+async function fetchPriceFixed(ticker) {
+  // Try the original approach first
+  const result = await _origFetchPrice(ticker);
+  if (result) return result;
+
+  // Additional fallback: try Yahoo v7 API through different proxy patterns
+  const altUrls = [
+    `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=2d`,
+  ];
+  for (const url of altUrls) {
+    for (const proxy of CORS_PROXIES) {
+      try {
+        const resp = await fetch(proxy + encodeURIComponent(url), {signal: AbortSignal.timeout(8000)});
+        if (!resp.ok) continue;
+        const data = await resp.json();
+        const parsed = parseYahooResult(data, ticker);
+        if (parsed) return parsed;
+      } catch(e) { continue; }
+    }
+  }
+  return null;
+}
+// Override global
+window.fetchPrice = fetchPriceFixed;
+
+// Also fix the historical data fetch to try multiple ranges for equity curve
+const _origSetEquityRange = setEquityRange;
+setEquityRange = async function(btn) {
+  document.querySelectorAll('.range-btn:not(#spyToggle)').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const range = btn.dataset.range;
+  const rangeMap = { '30D': '1mo', '90D': '3mo', '1Y': '1y' };
+  const yahooRange = rangeMap[range] || '1mo';
+
+  document.getElementById('equityCurveLoading').style.display = 'flex';
+  document.getElementById('equityCurveLoading').innerHTML = '<div class="spinner"></div> Loading ' + range + ' data…';
+  document.getElementById('equityCurveCanvas').style.display = 'none';
+
+  // Refetch historical data for the new range
+  const tickers = [...new Set(positions.map(p => p.ticker.toUpperCase()))];
+  const allTickers = [...tickers, 'SPY'];
+  const batchSize = 5;
+  historicalData = {};
+  for (let i = 0; i < allTickers.length; i += batchSize) {
+    const batch = allTickers.slice(i, i + batchSize);
+    const results = await Promise.allSettled(batch.map(t => fetchHistorical(t, yahooRange)));
+    results.forEach((r, idx) => {
+      if (r.status === 'fulfilled' && r.value && r.value.length > 0) {
+        historicalData[batch[idx]] = r.value;
+      }
+    });
+  }
+  spyHistoricalData = historicalData['SPY'] || null;
+  buildEquityCurve();
+  renderEquityCurve();
+  renderMetrics();
+  renderHeatmap();
+};
 
 init();
 </script>
