@@ -42,6 +42,7 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 .btn-primary:hover { background: #79bcff; }
 .btn-secondary { background: var(--card); border: 1px solid var(--border); color: var(--text); }
 .btn-secondary:hover { background: var(--card-hover); border-color: var(--text-muted); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-danger { background: transparent; border: 1px solid var(--red); color: var(--red); }
 .btn-danger:hover { background: var(--red); color: #fff; }
 .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
@@ -69,8 +70,44 @@ main { flex: 1; padding: 20px 24px; width: 100%; max-width: 100vw; overflow-x: h
 .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
 .toolbar-left { display: flex; align-items: center; gap: 10px; }
 .toolbar-right { display: flex; align-items: center; gap: 10px; }
+.view-tabs { display: inline-flex; align-items: center; gap: 6px; margin-right: 4px; }
+.tab-btn { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); font-size: 0.75rem; color: var(--text-muted); transition: all 0.2s; }
+.tab-btn:hover:not(:disabled) { color: var(--text); border-color: var(--text-muted); }
+.tab-btn.active { color: var(--bg); background: var(--accent); border-color: var(--accent); }
 .search-input { width: 200px; }
 .refresh-indicator { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Strategy Lab */
+.view-hidden { display: none !important; }
+.strategy-lab { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; animation: msgIn 0.22s ease; }
+.strategy-lab-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.strategy-lab-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+.strategy-lab-sub { font-size: 0.8rem; color: var(--text-muted); }
+.strategy-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.strategy-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s, transform 0.2s; }
+.strategy-card:hover { border-color: var(--text-muted); transform: translateY(-1px); }
+.strategy-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.strategy-name { font-size: 0.88rem; font-weight: 700; }
+.strategy-philosophy { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+.grade-circle { width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 800; flex-shrink: 0; }
+.grade-A { border-color: var(--green); color: var(--green); }
+.grade-B { border-color: var(--accent); color: var(--accent); }
+.grade-C { border-color: var(--yellow); color: var(--yellow); }
+.grade-D { border-color: #f0883e; color: #f0883e; }
+.grade-F { border-color: var(--red); color: var(--red); }
+.strategy-bars { display: flex; flex-direction: column; gap: 6px; }
+.strategy-bar-row { display: grid; grid-template-columns: 74px 1fr 58px; align-items: center; gap: 6px; }
+.strategy-bar-label { font-size: 0.72rem; color: var(--text-muted); text-align: right; }
+.strategy-bar-track { position: relative; height: 16px; border-radius: 3px; background: #0b1016; border: 1px solid var(--border); overflow: hidden; }
+.strategy-bar-ideal { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(210, 153, 34, 0.25); border-right: 1px dashed rgba(210, 153, 34, 0.65); }
+.strategy-bar-actual { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(88, 166, 255, 0.45); }
+.strategy-bar-text { font-size: 0.72rem; color: var(--text-muted); }
+.strategy-expl { font-size: 0.8rem; line-height: 1.55; color: var(--text); min-height: 76px; }
+.strategy-metrics { display: flex; flex-wrap: wrap; gap: 6px; }
+.strategy-metric { font-size: 0.72rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: 999px; padding: 3px 8px; }
+.strategy-ai { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 2px; }
+.strategy-ai-output { max-height: 0; overflow: hidden; transition: max-height 0.25s ease, opacity 0.25s ease; opacity: 0; font-size: 0.8rem; line-height: 1.6; color: var(--text-muted); }
+.strategy-ai-output.open { max-height: 240px; opacity: 1; margin-top: 8px; overflow-y: auto; }
 
 /* Table */
 .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; overflow-y: hidden; margin-bottom: 16px; width: 100%; min-width: 0; max-width: calc(100vw - 48px); }
@@ -209,10 +246,16 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
   .chat-panel.open { right: 0; }
   .toolbar { flex-direction: column; align-items: stretch; }
   .toolbar-left, .toolbar-right { justify-content: center; }
+  .view-tabs { margin-right: 0; }
   .search-input { width: 100%; }
   table { font-size: 0.78rem; }
   th, td { padding: 8px 6px; }
   .demo-banner { font-size: 0.78rem; padding: 8px 12px; }
+  .strategy-grid { grid-template-columns: 1fr; }
+  .strategy-lab-header { flex-direction: column; }
+}
+@media (max-width: 1100px) and (min-width: 769px) {
+  .strategy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 </style>
 </head>
@@ -286,6 +329,10 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
       <button class="btn btn-secondary btn-sm" onclick="openExportModal()">📄 Export Report</button>
     </div>
     <div class="toolbar-right">
+      <div class="view-tabs">
+        <button class="tab-btn active" id="portfolioTabBtn" onclick="setMainView('portfolio')">Portfolio</button>
+        <button class="tab-btn" id="strategyTabBtn" onclick="setMainView('strategy')">Strategy Lab</button>
+      </div>
       <span class="refresh-indicator" id="lastRefresh"></span>
       <input type="text" class="search-input" placeholder="Search ticker…" id="searchInput" oninput="renderTable()">
     </div>
@@ -366,6 +413,18 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
       <div class="bar-chart-container" id="holdingsBar"></div>
     </div>
   </div>
+
+  <!-- Strategy Lab -->
+  <section class="strategy-lab view-hidden" id="strategyLabSection">
+    <div class="strategy-lab-header">
+      <div>
+        <div class="strategy-lab-title">Strategy Lab</div>
+        <div class="strategy-lab-sub">Grade your portfolio against three very different investing philosophies.</div>
+      </div>
+      <div class="strategy-lab-sub">Blue = actual allocation · Gold = ideal</div>
+    </div>
+    <div class="strategy-grid" id="strategyLabGrid"></div>
+  </section>
 
 </main>
 
@@ -509,7 +568,7 @@ footer { border-top: 1px solid var(--border); padding: 16px 24px; text-align: ce
   @page { margin: 0.5in; }
   body { background: #fff !important; color: #000 !important; font-size: 12px; }
   header, footer, .chat-panel, .toolbar, .demo-banner, .toast-container, .modal-overlay,
-  .actions-cell, .search-input, .refresh-indicator, .range-toggles, #mcRunBtn,
+  .actions-cell, .search-input, .refresh-indicator, .range-toggles, #mcRunBtn, #strategyLabSection,
   .btn, .header-actions, #monteCarloCard, #heatmapCard { display: none !important; }
   .summary-card, .metric-card, .chart-card, .equity-curve-card, .table-wrap, .heatmap-card {
     background: #fff !important; border: 1px solid #ccc !important; break-inside: avoid;
@@ -549,6 +608,23 @@ let isDemo = false;
 let chatHistory = [];
 let chatCount = 0;
 const MAX_CHAT = 20;
+let activeMainView = 'portfolio';
+const PORTFOLIO_SECTION_IDS = ['summaryCards', 'metricsRow', 'tableWrap', 'equityCurveCard', 'heatmapCard', 'monteCarloCard', 'chartsRow'];
+const strategyAiState = {
+  barbell: { open: false, loading: false, text: '' },
+  allWeather: { open: false, loading: false, text: '' },
+  concentration: { open: false, loading: false, text: '' },
+};
+const GRADE_LABELS = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
+const MEGA_CAP_TICKERS = new Set(['AAPL','MSFT','GOOGL','GOOG','AMZN','NVDA','META','TSLA','BRK.B','BRK.A','JPM','V','MA','LLY','AVGO','WMT','XOM','UNH','ORCL','COST']);
+const MID_CAP_TICKERS = new Set(['ETSY','ROKU','DOCU','BILL','U','DKNG','RBLX','CHWY','TOST','GTLB','WIX']);
+const SMALL_CAP_TICKERS = new Set(['IONQ','RKLB','SOUN','LMND','SOFI','UPST','PTRA','BB','MARA','RIOT']);
+const MICRO_CAP_TICKERS = new Set(['SENS','TNXP','IDEX','BBIG','ATER','CTRM']);
+const CASH_EQ_TICKERS = new Set(['BIL','SGOV','SHV','SHY','VGSH','GBIL','TFLO','USFR','SCHO']);
+const LONG_BOND_TICKERS = new Set(['TLT','VGLT','EDV','ZROZ','TLH','BLV','SPTL']);
+const INTERMEDIATE_BOND_TICKERS = new Set(['IEF','IEI','VGIT','SCHR','BIV','AGG','BND','VBILX','VCIT','BOND']);
+const GOLD_TICKERS = new Set(['GLD','IAU','SGOL','BAR','PHYS','SLV','SIVR']);
+const COMMODITY_TICKERS = new Set(['DBC','PDBC','COMT','GSG','USO','UNG','DBA','PPLT','CPER']);
 
 const SECTOR_MAP = {
   AAPL:'Technology',MSFT:'Technology',GOOGL:'Technology',AMZN:'Consumer Cyclical',
@@ -616,6 +692,335 @@ function toast(msg, type='info') {
   setTimeout(() => el.remove(), 3500);
 }
 function getSector(ticker) { return SECTOR_MAP[ticker.toUpperCase()] || 'Other'; }
+function clamp(n, min, max) { return Math.min(max, Math.max(min, n)); }
+function gradeToClass(grade) { return 'grade-' + grade.charAt(0); }
+function scoreToGrade(score) {
+  if (score >= 97) return 'A+';
+  if (score >= 93) return 'A';
+  if (score >= 90) return 'A-';
+  if (score >= 86) return 'B+';
+  if (score >= 83) return 'B';
+  if (score >= 80) return 'B-';
+  if (score >= 76) return 'C+';
+  if (score >= 73) return 'C';
+  if (score >= 70) return 'C-';
+  if (score >= 66) return 'D+';
+  if (score >= 63) return 'D';
+  if (score >= 60) return 'D-';
+  return 'F';
+}
+function gradeIndex(grade) { return GRADE_LABELS.indexOf(grade); }
+function capGrade(current, cap) {
+  if (gradeIndex(current) === -1 || gradeIndex(cap) === -1) return current;
+  return gradeIndex(current) <= gradeIndex(cap) ? current : cap;
+}
+function normalizeTicker(ticker) { return (ticker || '').toUpperCase().trim(); }
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function classifyTicker(ticker) {
+  const tk = normalizeTicker(ticker);
+  if (CASH_EQ_TICKERS.has(tk)) return { assetClass: 'cashEq', cap: 'safe' };
+  if (LONG_BOND_TICKERS.has(tk)) return { assetClass: 'longBond', cap: 'safe' };
+  if (INTERMEDIATE_BOND_TICKERS.has(tk)) return { assetClass: 'intermediateBond', cap: 'safe' };
+  if (GOLD_TICKERS.has(tk)) return { assetClass: 'gold', cap: 'nonEquity' };
+  if (COMMODITY_TICKERS.has(tk)) return { assetClass: 'commodities', cap: 'nonEquity' };
+  if (MICRO_CAP_TICKERS.has(tk)) return { assetClass: 'stocks', cap: 'micro' };
+  if (SMALL_CAP_TICKERS.has(tk)) return { assetClass: 'stocks', cap: 'small' };
+  if (MID_CAP_TICKERS.has(tk)) return { assetClass: 'stocks', cap: 'mid' };
+  if (MEGA_CAP_TICKERS.has(tk)) return { assetClass: 'stocks', cap: 'mega' };
+  return { assetClass: 'stocks', cap: 'large' }; // conservative default
+}
+function updateStrategyTabState() {
+  const hasPositions = positions.length > 0;
+  const strategyBtn = document.getElementById('strategyTabBtn');
+  if (!strategyBtn) return;
+  strategyBtn.disabled = !hasPositions;
+  strategyBtn.title = hasPositions ? 'Grade portfolio strategies' : 'Add positions to use Strategy Lab';
+  if (!hasPositions && activeMainView === 'strategy') setMainView('portfolio');
+}
+function setMainView(view) {
+  if (view === 'strategy' && positions.length === 0) {
+    toast('Add at least one holding to unlock Strategy Lab', 'error');
+    return;
+  }
+  activeMainView = view;
+  const strategyOpen = view === 'strategy';
+  PORTFOLIO_SECTION_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('view-hidden', strategyOpen);
+  });
+  document.getElementById('strategyLabSection')?.classList.toggle('view-hidden', !strategyOpen);
+  document.getElementById('portfolioTabBtn')?.classList.toggle('active', !strategyOpen);
+  document.getElementById('strategyTabBtn')?.classList.toggle('active', strategyOpen);
+  if (strategyOpen) renderStrategyLab();
+}
+function barRows(rows) {
+  return rows.map(row => `
+    <div class="strategy-bar-row">
+      <div class="strategy-bar-label">${row.label}</div>
+      <div class="strategy-bar-track">
+        <div class="strategy-bar-ideal" style="width:${clamp(row.ideal, 0, 100).toFixed(1)}%;"></div>
+        <div class="strategy-bar-actual" style="width:${clamp(row.actual, 0, 100).toFixed(1)}%;"></div>
+      </div>
+      <div class="strategy-bar-text">${fmt(row.actual, 1)}%</div>
+    </div>
+  `).join('');
+}
+function extractAllocationModel() {
+  const data = enriched();
+  const total = data.reduce((sum, d) => sum + d.mktVal, 0) || 1;
+  const alloc = {
+    safe: 0, spec: 0, middle: 0, mega: 0, large: 0, mid: 0, small: 0, micro: 0,
+    stocks: 0, longBond: 0, intermediateBond: 0, gold: 0, commodities: 0, cashEq: 0, other: 0,
+  };
+  const caps = { mega: 0, large: 0, mid: 0, small: 0, micro: 0 };
+  data.forEach(d => {
+    const w = (d.mktVal / total) * 100;
+    const cls = classifyTicker(d.ticker);
+    if (cls.cap in caps) caps[cls.cap] += w;
+    if (cls.assetClass === 'cashEq' || cls.assetClass === 'longBond' || cls.assetClass === 'intermediateBond') alloc.safe += w;
+    if (cls.cap === 'small' || cls.cap === 'micro') alloc.spec += w;
+    if (cls.cap === 'mega' || cls.cap === 'large' || cls.cap === 'mid') alloc.middle += w;
+    if (cls.cap === 'mega') alloc.mega += w;
+    if (cls.cap === 'large') alloc.large += w;
+    if (cls.cap === 'mid') alloc.mid += w;
+    if (cls.cap === 'small') alloc.small += w;
+    if (cls.cap === 'micro') alloc.micro += w;
+    if (cls.assetClass === 'stocks') alloc.stocks += w;
+    else if (cls.assetClass === 'longBond') alloc.longBond += w;
+    else if (cls.assetClass === 'intermediateBond') alloc.intermediateBond += w;
+    else if (cls.assetClass === 'gold') alloc.gold += w;
+    else if (cls.assetClass === 'commodities') alloc.commodities += w;
+    else if (cls.assetClass === 'cashEq') alloc.cashEq += w;
+    else alloc.other += w;
+  });
+  return { alloc, caps, total };
+}
+function gradeBarbell(model) {
+  const safe = model.alloc.safe;
+  const spec = model.alloc.spec;
+  const middle = model.alloc.middle;
+  const largeCapPresence = model.caps.mega + model.caps.large;
+  if (middle > 99.5 && spec < 0.5 && safe < 0.5) {
+    return {
+      grade: 'F',
+      explanation: 'You built the bar without the bells. This portfolio is almost entirely large-cap middle, which is exactly what Taleb avoids. Barbell needs boring safety on one side and explicit speculative bets on the other.',
+      metrics: [`Middle exposure ${fmt(middle, 1)}%`, `Safe sleeve ${fmt(safe, 1)}%`, `Spec sleeve ${fmt(spec, 1)}%`],
+      bars: [{ label: 'Safe', ideal: 85, actual: safe }, { label: 'Spec', ideal: 15, actual: spec }, { label: 'Middle', ideal: 0, actual: middle }],
+    };
+  }
+  let score = 100;
+  score -= Math.abs(safe - 85) * 0.45;
+  score -= Math.abs(spec - 15) * 0.65;
+  score -= middle * 0.9;
+  score -= model.caps.mid * 0.2;
+  score = clamp(score, 0, 100);
+  let grade = scoreToGrade(score);
+  if (largeCapPresence > 0.1) grade = capGrade(grade, 'C');
+  const explanation = `Barbell wants around 85% ultra-safe and 15% explicitly speculative names, with no middle zone. Your portfolio is ${fmt(safe, 1)}% safe, ${fmt(spec, 1)}% speculative, and ${fmt(middle, 1)}% in the middle. ${largeCapPresence > 0 ? 'Large-cap exposure is present, so your grade is capped at C or below.' : 'You avoided large caps, which keeps the upside open for this framework.'}`;
+  return {
+    grade,
+    explanation,
+    metrics: [`Safe sleeve ${fmt(safe, 1)}%`, `Spec sleeve ${fmt(spec, 1)}%`, `Middle zone ${fmt(middle, 1)}%`],
+    bars: [{ label: 'Safe', ideal: 85, actual: safe }, { label: 'Spec', ideal: 15, actual: spec }, { label: 'Middle', ideal: 0, actual: middle }],
+  };
+}
+function gradeAllWeather(model) {
+  const target = { stocks: 30, longBond: 40, intermediateBond: 15, gold: 7.5, commodities: 7.5 };
+  const actual = {
+    stocks: model.alloc.stocks,
+    longBond: model.alloc.longBond,
+    intermediateBond: model.alloc.intermediateBond,
+    gold: model.alloc.gold,
+    commodities: model.alloc.commodities,
+  };
+  if (actual.stocks > 99) {
+    return {
+      grade: 'D-',
+      explanation: 'You are all-weather if the only weather is sunny. This is effectively an equity-only portfolio, so it has weak protection against inflation shocks, deflation, and growth drawdowns. Dalio-style balancing only works when all sleeves are actually present.',
+      metrics: [`Stocks ${fmt(actual.stocks, 1)}%`, `Bond sleeves ${fmt(actual.longBond + actual.intermediateBond, 1)}%`, `Real assets ${fmt(actual.gold + actual.commodities, 1)}%`],
+      bars: [
+        { label: 'Stocks', ideal: target.stocks, actual: actual.stocks },
+        { label: 'LT Bonds', ideal: target.longBond, actual: actual.longBond },
+        { label: 'Int Bonds', ideal: target.intermediateBond, actual: actual.intermediateBond },
+        { label: 'Gold', ideal: target.gold, actual: actual.gold },
+        { label: 'Commod.', ideal: target.commodities, actual: actual.commodities },
+      ],
+    };
+  }
+  const classesPresent = Object.values(actual).filter(v => v >= 3).length;
+  let weightedDev = 0;
+  Object.keys(target).forEach(key => {
+    const weight = 0.8 + (target[key] / 40);
+    weightedDev += Math.abs(actual[key] - target[key]) * weight;
+  });
+  weightedDev += (model.alloc.cashEq + model.alloc.other) * 1.05;
+  let score = clamp(100 - weightedDev * 0.62, 0, 100);
+  let grade = scoreToGrade(score);
+  if (classesPresent <= 1) grade = capGrade(grade, 'D');
+  else if (classesPresent === 2) grade = capGrade(grade, 'C');
+  const explanation = `All-Weather targets balanced risk across regimes, not just return maximization. Your weighted deviation from target sleeves is ${fmt(weightedDev, 1)} points, with ${classesPresent} of 5 sleeves meaningfully represented. Improve by reducing stock dominance and filling long-duration bonds plus real assets.`;
+  return {
+    grade,
+    explanation,
+    metrics: [`Deviation score ${fmt(weightedDev, 1)}`, `Sleeves active ${classesPresent}/5`, `Stocks ${fmt(actual.stocks, 1)}%`],
+    bars: [
+      { label: 'Stocks', ideal: target.stocks, actual: actual.stocks },
+      { label: 'LT Bonds', ideal: target.longBond, actual: actual.longBond },
+      { label: 'Int Bonds', ideal: target.intermediateBond, actual: actual.intermediateBond },
+      { label: 'Gold', ideal: target.gold, actual: actual.gold },
+      { label: 'Commod.', ideal: target.commodities, actual: actual.commodities },
+    ],
+  };
+}
+function gradeConcentration() {
+  const data = enriched().sort((a, b) => b.weight - a.weight);
+  const n = data.length;
+  const weights = data.map(d => d.weight / 100);
+  const top1 = (weights[0] || 0) * 100;
+  const top3 = weights.slice(0, 3).reduce((sum, w) => sum + w, 0) * 100;
+  const hhi = weights.reduce((sum, w) => sum + w * w, 0);
+  const equalWeight = n >= 8 && weights.length > 0 && weights.every(w => Math.abs((w * 100) - (100 / n)) < 2.5);
+
+  if (n <= 2) {
+    return {
+      grade: 'A+',
+      explanation: 'Buffett would approve. Munger would nod silently. This is highly concentrated conviction sizing, which matches the philosophy if you truly understand the businesses.',
+      metrics: [`Positions ${n}`, `Top weight ${fmt(top1, 1)}%`, `HHI ${fmt(hhi, 3)}`],
+      bars: [{ label: 'Top 1', ideal: 30, actual: top1 }, { label: 'Top 3', ideal: 70, actual: top3 }, { label: 'HHI', ideal: 18, actual: hhi * 100 }],
+    };
+  }
+  if (n === 10 && equalWeight) {
+    return {
+      grade: 'C',
+      explanation: 'Pick your best 3 and actually commit. Ten near-equal positions reads like diversification-by-anxiety, not conviction. Concentration strategy rewards depth of understanding and aggressive sizing in your top ideas.',
+      metrics: [`Positions ${n}`, `Top weight ${fmt(top1, 1)}%`, `HHI ${fmt(hhi, 3)}`],
+      bars: [{ label: 'Top 1', ideal: 30, actual: top1 }, { label: 'Top 3', ideal: 70, actual: top3 }, { label: 'HHI', ideal: 18, actual: hhi * 100 }],
+    };
+  }
+  let score = 100;
+  if (n <= 5) score += 6;
+  else if (n <= 8) score -= 10;
+  else score -= 20 + (n - 8) * 4;
+  if (top1 < 25) score -= (25 - top1) * 1.25;
+  else score += Math.min(8, (top1 - 25) * 0.4);
+  if (hhi < 0.11) score -= (0.11 - hhi) * 280;
+  else score += Math.min(6, (hhi - 0.11) * 120);
+  if (equalWeight) score -= 16;
+  score = clamp(score, 0, 100);
+  const grade = scoreToGrade(score);
+  const explanation = `This framework favors 3-5 positions with obvious conviction sizing in the top name. You currently hold ${n} positions, top weight is ${fmt(top1, 1)}%, and HHI is ${fmt(hhi, 3)}. Push capital into your highest-conviction ideas and trim low-edge tail positions if you want a stronger concentration score.`;
+  return {
+    grade,
+    explanation,
+    metrics: [`Positions ${n}`, `Top weight ${fmt(top1, 1)}%`, `HHI ${fmt(hhi, 3)}`],
+    bars: [{ label: 'Top 1', ideal: 30, actual: top1 }, { label: 'Top 3', ideal: 70, actual: top3 }, { label: 'HHI', ideal: 18, actual: hhi * 100 }],
+  };
+}
+function computeStrategyGrades() {
+  const model = extractAllocationModel();
+  return {
+    barbell: gradeBarbell(model),
+    allWeather: gradeAllWeather(model),
+    concentration: gradeConcentration(),
+  };
+}
+function renderStrategyLab() {
+  const section = document.getElementById('strategyLabSection');
+  const grid = document.getElementById('strategyLabGrid');
+  if (!section || !grid) return;
+  if (positions.length === 0) {
+    section.classList.add('view-hidden');
+    return;
+  }
+  const grades = computeStrategyGrades();
+  const cards = [
+    { key: 'barbell', name: 'Barbell Strategy', line: 'Extremes only: very safe + very speculative, no middle.' },
+    { key: 'allWeather', name: 'All-Weather Strategy', line: 'Balance risk across growth, inflation, and deflation regimes.' },
+    { key: 'concentration', name: 'Concentration Strategy', line: 'Own only your best ideas and size them like conviction.' },
+  ];
+  grid.innerHTML = cards.map(card => {
+    const res = grades[card.key];
+    const ai = strategyAiState[card.key];
+    return `<article class="strategy-card">
+      <div class="strategy-head">
+        <div>
+          <div class="strategy-name">${card.name}</div>
+          <div class="strategy-philosophy">${card.line}</div>
+        </div>
+        <div class="grade-circle ${gradeToClass(res.grade)}">${res.grade}</div>
+      </div>
+      <div class="strategy-bars">${barRows(res.bars)}</div>
+      <div class="strategy-expl">${res.explanation}</div>
+      <div class="strategy-metrics">${res.metrics.map(metric => `<span class="strategy-metric">${metric}</span>`).join('')}</div>
+      <div class="strategy-ai">
+        <button class="btn btn-secondary btn-sm" onclick="getStrategyAiAnalysis('${card.key}')">${ai.loading ? '<span class="spinner"></span> Analyzing…' : 'Get AI Analysis'}</button>
+        <div class="strategy-ai-output ${ai.open ? 'open' : ''}" id="strategyAi_${card.key}">${ai.text ? escapeHtml(ai.text).replace(/\n/g, '<br>') : ''}</div>
+      </div>
+    </article>`;
+  }).join('');
+}
+async function getStrategyAiAnalysis(strategyKey) {
+  if (positions.length === 0 || !strategyAiState[strategyKey]) return;
+  strategyAiState[strategyKey].open = true;
+  strategyAiState[strategyKey].loading = true;
+  renderStrategyLab();
+  const grades = computeStrategyGrades();
+  const picked = grades[strategyKey];
+  const labelMap = { barbell: 'Barbell Strategy', allWeather: 'All-Weather Strategy', concentration: 'Concentration Strategy' };
+  const prompt = `Give a sharp ~150 word analysis of this portfolio under ${labelMap[strategyKey]}. Grade is ${picked.grade}. Use these metrics: ${picked.metrics.join(', ')}. Explain what is hurting the score, what to change first, and keep a witty roast tone without being mean.`;
+  try {
+    const byokKey = localStorage.getItem(API_KEY_STORAGE);
+    let reply = '';
+    if (byokKey) {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': byokKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 380,
+          system: `You are a blunt portfolio strategy grader. Stay around 150 words. Use concrete numbers and be direct.\n\n${buildPortfolioContext()}`,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (!resp.ok) throw new Error('API error');
+      const data = await resp.json();
+      reply = data?.content?.[0]?.text || 'No response.';
+    } else {
+      const resp = await fetch(CHAT_WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          portfolioContext: buildPortfolioContext(),
+          strategy: strategyKey,
+          strategyGrade: picked.grade,
+        }),
+      });
+      if (!resp.ok) throw new Error('Service error');
+      const data = await resp.json();
+      reply = data?.reply || 'No response.';
+    }
+    strategyAiState[strategyKey].text = reply;
+  } catch (e) {
+    strategyAiState[strategyKey].text = '⚠️ Failed to load analysis: ' + e.message;
+  } finally {
+    strategyAiState[strategyKey].loading = false;
+    strategyAiState[strategyKey].open = true;
+    renderStrategyLab();
+  }
+}
 
 // =====================================================================
 // PERSISTENCE
@@ -696,6 +1101,7 @@ async function refreshPrices() {
     });
     renderTable();
     renderSummary();
+    if (activeMainView === 'strategy') renderStrategyLab();
   }
   icon.style.animation = '';
   const now = new Date();
@@ -703,6 +1109,7 @@ async function refreshPrices() {
   if (fail > 0) toast(`${fail} ticker(s) failed to fetch`, 'error');
   if (success > 0) {
     renderCharts();
+    if (activeMainView === 'strategy') renderStrategyLab();
     toast(`${success} price(s) updated`, 'success');
   }
 }
@@ -1653,9 +2060,11 @@ function renderHeatmap() {
 // INIT
 // =====================================================================
 function renderAll() {
+  updateStrategyTabState();
   renderTable();
   renderSummary();
   renderCharts();
+  if (activeMainView === 'strategy') renderStrategyLab();
 }
 
 async function init() {
@@ -1664,6 +2073,8 @@ async function init() {
   if (!hasData || positions.length === 0) {
     initDemo();
   }
+  updateStrategyTabState();
+  setMainView('portfolio');
   renderAll();
   await refreshPrices();
   // After prices loaded, fetch historical data
