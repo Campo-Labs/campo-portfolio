@@ -963,7 +963,10 @@ function openEmailModal() { openModal('emailModal'); document.getElementById('in
 function submitEmail() {
   const email = document.getElementById('inputEmail').value.trim();
   if (!email || !email.includes('@')) { toast('Enter a valid email', 'error'); return; }
-  // Placeholder — wire up Resend later
+  fetch('https://campolabs-emails.mdacampora.workers.dev/api/collect', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, source: 'portfolio-repo' }),
+  }).catch(() => {});
   toast('Thanks! We\'ll send you the repo link shortly.', 'success');
   closeModal('emailModal');
   document.getElementById('inputEmail').value = '';
