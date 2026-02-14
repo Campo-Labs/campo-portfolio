@@ -2096,6 +2096,10 @@ function openExportModal() { openModal('exportModal'); document.getElementById('
 function generateReport() {
   const email = document.getElementById('inputExportEmail').value.trim();
   if (!email || !email.includes('@')) { toast('Enter a valid email', 'error'); return; }
+  fetch('https://campolabs-emails.mdacampora.workers.dev/api/collect', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, source: 'portfolio-export' }),
+  }).catch(() => {});
   console.log('[Campo Portfolio] Email captured for report:', email);
   closeModal('exportModal');
 
