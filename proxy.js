@@ -4,7 +4,7 @@ const http = require('http');
 const https = require('https');
 
 const PORT = 8854;
-const ALLOWED_ORIGINS = ['https://portfolio.campolabs.ai', 'http://localhost:8853'];
+const ALLOWED_ORIGINS = ['https://portfolio.campolabs.ai', 'http://localhost:8853', 'http://100.73.116.109:8888'];
 
 const server = http.createServer((req, res) => {
   const origin = req.headers.origin || '';
